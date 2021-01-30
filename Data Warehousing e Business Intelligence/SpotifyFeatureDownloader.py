@@ -9,8 +9,8 @@ parser.add_argument("--artist", required=True, type=str, help="")
 args = parser.parse_args()
 
 # Credenziali Spotify Developer
-cid = 'f255839fe13348aab29eebc715b166b3'
-secret = '4d4cfcf6b36f4ec0b3f1dddb89327257'
+cid = 'YOURID'
+secret = 'YOURSECRET'
 # Creo la sessione
 client_credentials_manager = SpotifyClientCredentials(client_id=cid, client_secret=secret)
 sp = spotipy.Spotify(client_credentials_manager = client_credentials_manager)
