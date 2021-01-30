@@ -1,0 +1,1182 @@
+---
+title: "Data Science e Beatlemania: tecniche di text analysis nei testi dei Beatles"
+author: "Bolpagni M., Broglio M., Innocenzi A., Ulivieri T."
+date: "20/11/2020"
+output: html_document
+abstract: "L'elaborato ha l'obiettivo di viaggiare nel tempo ed esplorare gli anni '60 attraverso i testi dei Beatles e ripercorrere quei temi centrali che hanno contribuito a creare il fenomeno planetario della Beatlemania. Dai risultati emerge un sentiment molto positivo con temi legati alla cultura giovanile. Tra i compositori prevalgono le due figure di spicco del gruppo: McCartney, più spensierato e gioioso e Lennon più introspettivo e riflessivo. L'amore, osannato dai critici come tema ricorrente nei Beatles, risulta dalle analisi meno apprezzato dal grande pubblico di oggi."
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,fig.width=12, fig.height=8, fig.path='Figs/',
+                      warning=FALSE, message=FALSE)
+```
+
+### Introduzione
+
+Una breve analisi del contesto storico-culturale degli anni '60 mostra come questa dècade è ricordata come un periodo di disordini sociali e profondi cambiamenti. La forza espansiva del capitalismo americano, una rinnovata stabilizzazione monetaria internazionale unita all'intervento regolatore degli Stati permisero, a partire dal dopoguerra, un sostenuto ritmo di sviluppo per le economie più avanzate dell'area capitalistica. Negli Stati Uniti, la visione ottimistica dovuta alle riforme sociali promosse dal presidente democratico J.F.Kennedy cessò con il suo assassinio. L’acuirsi delle tensioni tra Stati Uniti e URSS portarono prima alla crisi missilistica di Cuba e all’avvio della fase di distensione accompagnata però dall’intervento militare americano in Vietnam[^nota1]. Il problema della segregazione razziale, ancora persistente fino alla metà degli anni 60’ in molti stati degli USA, scatenò un periodo di lotte per l’emancipazione[^nota2]; il “sogno” di M.L.King guidò il movimento di massa per i diritti civili (ispirandosi al metodo della nonviolenza di Mahatma Gandhi) fino al suo assassinio.
+
+Ma gli anni 60’ sono anche ricordati come un tempo di grande vigore, ottimismo, edonismo, divertimento e creatività. Le barriere culturali crollano e fa la sua comparsa una generazione completamente nuova: anticonvenzionali, ribelli, pieni di energia, non fanno parte di una élite aristocratica ingessata e lontana dalla realtà. Seguendo l’analisi dello storico Eric J. Hobsbawm, furono due le caratteristiche principali della cultura giovanile degli anni 60’:
+
+> *“Essa fu una cultura «demotica» (cioè di ispirazione popolare) e «antinomiana» (cioè avversa ad ogni tipo di regola) soprattutto in merito alla propria condotta personale. Ognuno doveva «fare quello che gli pareva», con il minimo di costrizione esterna, benché in pratica la pressione dei coetanei e della moda imponesse la stessa uniformità che in passato, almeno nei gruppi di giovani coetanei che condividevano la stessa sottocultura.[^nota3]”*
+
+Le nuove tendenze filosofiche, in particolare i rappresentanti della Scuola di Francoforte, nutrirono la nuova cultura giovanile verso una riflessione critica della realtà sociale, portando quell’ideale rivoluzionario di un’umanità futura libera. La critica degli studiosi di Francoforte denunciava la disumana condizione dell’uomo nella società del tempo, ritenuta totalitaria e repressiva[^nota4]; l’uomo non è libero di compiere le proprie scelte, perché la società gli crea continuamente nuovi e falsi bisogni, alienandolo sempre di più.
+
+Pur vivendo nel suo paradosso (regressione post-bellica, progressione post-riforme), Londra offrì alla generazione appena nata la risposta alla ricerca di cambiamento diventando il simbolo della contemporaneità. Grazie al boom demografico e al benessere ritrovato nel periodo post bellico, cominciò un era rivoluzionaria in Inghilterra che, come un’onda inarrestabile, trascinò una delle società più conservatrici dell’occidente di nuovo al centro del mondo, non più capitale di un impero, ma culla dello stile e delle nuove tendenze. Le nuove correnti in fatto di moda rendono di Londra la mecca dello shopping dei teenager, proiettando questi mutamenti della società del consumo verso il postmodernismo[^nota5]. Tutte queste caratteristiche dello Swingin’ London[^nota6] non potevano mancare all’interno dell’espressione musicale della popular music: concerti e festival divennero il fulcro di quei valori e preoccupazioni delle nascenti controculture. 
+
+Fu in questo clima ribelle e innovativo che si affermarono i Beatles, divenendo un fenomeno planetario e raccogliendo quello spirito rivoluzionario della cultura giovanile e che rispondeva alle esigenze della nuova generazione. Usando le parole di Federico Ballanti *“i Beatles arrivano a proporre un'immagine di fuga, un modello sufficientemente compatibile sia con il desiderio di rottura e cambiamento dei giovani che con un ideale di autorealizzazione che, nonostante i suoi aspetti antisociali per l'epoca, è ancora ampiamente dentro il recinto della famiglia e della società borghese[^nota7]”*.
+
+Da *“Please Please me”* a *“Let it be”*, il progetto ha lo scopo di ricavare informazioni dall'esplorazione dei testi dell’intera letteratura discografica dei Beatles utilizzando i metodi del Text mining, con particolare focus all’analisi di sentimento e opinione.
+
+
+[^nota1]: Molte furono le manifestazioni e i movimenti di protesta contro la guerra in Vietnam, tra i quali vi era l’NSM (Movimento Studentesco del Nord) fondato nel 1962, che vide militare nelle sue file studenti come Abbie Hoffman (esponente della *New Left* radicale degli Stati Uniti), e il *Moratorium day* del 15 Ottobre 1969, una manifestazione che fu capace di unificare su un solo obiettivo molti segmenti della società americana, studenti, lavoratori, minoranze, artisti e intellettuali.
+
+[^nota2]: La rivolta pacifica dei *Greensboro Four* nel Febbraio 1960 fu tra le più importanti proteste che portò ai primi traguardi per i diritti civili degli afroamericani negli Stati Uniti come il *Civil Right Act* del 1964, che proibì la discriminazione in tutti i luoghi pubblici e il *Voting Right Act* del 1965, che dichiarò illegali le pratiche per bloccare il voto degli afroamericani.
+
+[^nota3]: Eric J. Hobsbawm, *Il secolo breve: 1914/1991*, Bur, prima ed. giugno 2004, p. 388
+
+[^nota4]: Si pensi a come inizia l’analisi sociale di Herbert Marcuse nel celebre studio del 1964:” Una confortevole, levigata, ragionevole, democratica non libertà prevale nella civiltà industriale avanzata, segno di progresso tecnico”. *L’uomo a una dimensione* (titolo dello studio) è l’individuo alienato e omologato della società industriale avanzata, colui il quale ha perso la capacità critica e si omologa alla realtà, assunta come immodificabile.
+
+[^nota5]: Secondo il Sociologo M. Featherstone, già negli anni 60’ appaiono i primi elementi sociali e culturali caratteristici delle società postmoderne, in M. Featherstone, *Cultura del consumo e postmodernismo*, Edizioni Seam, 1994.
+
+[^nota6]: Definizione del Time in un articolo del 15 Aprile 1966.
+
+[^nota7]: F. Ballanti, *La rivoluzione culturale: i Beatles hanno svegliato il mondo*, in “La Repubblica”, 26 Settembre 2012, articolo reperibile su questo [link](https://www.repubblica.it/persone/2012/09/26/news/una_rivoluzione_culturale_come_i_beatles_hanno_svegliato_il_mondo-43325590/)
+
+
+
+### Obiettivi di ricerca
+
+
+L'elaborato ha lo scopo di indagare i seguenti aspetti:
+
+1. Individuare i **topic** prevalenti nei brani dei Beatles
+2. Esplorare il **sentiment** dei testi, implementando anche l'analisi dello spettro emotivo.
+3. Evidenziare le caratteristiche dei diversi **compositori**.
+4. Indagare le caratteristiche dei brani in relazione alla loro attuale **popolarità**.
+
+
+
+### Metodo e analisi
+### 1: Data Pre-processing e Cleaning
+
+L'acquisizione del dataset è stata ottenuta attraverso lo scraping web su codice Python e libreria *Selenium* e *BeautifulSoup* del sito [azlyrics.com](https://www.azlyrics.com/). I dati sono stati catalogati in un dataframe e salvati nel documento **Beatles_def.csv** con i principali contenuti (utili per quest'analisi) di 428 brani e 7 colonne (*Artist*, *Year*, *Album*, *Title*, *Authors*, *Lyric* e *Link*). 
+
+In merito alla parziale correttezza nel contenuto della variabile *Authors*, è stato effettuato un ulteriore scraping sul sito [beatlesarchive.net](http://www.beatlesarchive.net/composer-singer-beatles-songs.html); il file **Composer_Beatles.csv** contiene, dunque, la lista degli autori dei brani completa e corretta.
+
+È stato generato il file **spotify_beatles.csv**[^nota8], ottenuto tramite API su piattaforma di web streaming Spotify e libreria *spotipy*, utile nell'implementazione dell'indice **Popularity**. La **Popularity** rappresenta un valore da 0 a 100 (dove 100 è il più popolare) ed è misurato da un algoritmo che si basa, nella maggior parte dei casi, sul numero totale di riproduzioni che la traccia ha avuto e su quanto sono recenti quelle riproduzioni[^nota9].
+
+Le prime operazioni di seguito riportate rappresentano la fase di pre-processing e cleaning dei dati, utile alla preparazione del dataset per le successive analisi testuali.
+
+
+[^nota8]: I dati sono aggiornati al 27 Settembre 2020
+
+
+[^nota9]: Per maggiori dettagli sulla misura dell'indice **Popularity**, consultare questo [link](https://developer.spotify.com/documentation/web-api/reference/tracks/get-track/)
+
+
+```{r Librerie}
+# Carico le librerie necessarie
+library(readr)
+library(dplyr)
+library(stringr)
+library(stopwords)
+library(tm)
+library(tidytext)
+library(tidyverse)
+library(plotrix)
+library(igraph)
+library(ggraph)
+library(yarrr)
+library(circlize)
+library(Xplortext)
+library(ggwordcloud)
+library(tidyr)
+library(ggalt)
+library(radarchart)
+library(widyr)
+library(textstem)
+library(Xplortext) # LCA
+library(factoextra)
+library(e1071)
+library(ggridges)
+```
+
+
+```{r Upload Dataset}
+#Upload dei Dataset
+beatles.lyrics <- read_csv("Beatles_def.csv", col_types = cols(Year = col_integer()))
+beatles.spotify <- read_csv("spotify_beatles.csv")
+beatles.composer <- read_csv("Composer_Beatles.csv")
+custom.stopwords <- read_csv("custom_stopwords.csv")
+```
+
+
+```{r Filtro Dataset fino agli anni 70}
+#Preparazione Dataset:
+# Filtro prima degli anni 70 per eliminare nuove edizioni e tenere solo gli album originali
+beatles.lyrics <- beatles.lyrics %>%
+  filter(Year <= 1970) %>%
+  distinct()
+beatles.spotify <- beatles.spotify  %>%
+  filter(ReleaseDate <= '1970-12-31') %>%
+  distinct() %>%
+  filter(grepl("Remastered", Album))
+```
+
+
+L'ultimo album dei Beatles, *Let it Be*, è stato pubblicato l'8 Maggio del 1970. Questa data può essere considerata come valore soglia della loro produzione musicale, dovuto allo scioglimento della band avvenuto poco dopo. Per queste ragioni, in questa analisi consideriamo tutti i brani compresi fino al 1970.
+
+
+```{r Cleaning Titoli}
+# Cleaning dei titoli per creare un campo join uniforme tra i dataset
+titleCleaning <- function(title){
+  title <- gsub("´", "'", title)
+  title <- tolower(title)
+  title <- removePunctuation(title)
+}
+
+beatles.composer <- beatles.composer %>%
+  mutate(TitleLower = titleCleaning(Song))
+beatles.lyrics <- beatles.lyrics %>%
+  mutate(TitleLower = titleCleaning(Title))
+beatles.spotify <- beatles.spotify %>%
+  mutate(SongName = gsub(" - Remastered 2009", "", SongName)) %>%
+  mutate(TitleLower = titleCleaning(SongName))
+```
+
+
+```{r Join e Selezione}
+# Join con dplyr e selezione colonne
+beatles_full_df <- beatles.lyrics %>% 
+  left_join(beatles.spotify, by = "TitleLower")  %>% 
+  left_join(beatles.composer, by = "TitleLower") %>% 
+  distinct() %>% 
+  rename_all(~str_replace_all(., "\\s+", "")) %>% #fix nomi colonne con spazi
+  rename(Album = Album.x) %>% 
+  filter(Title != "Michelle") %>% #tolgo canzone Michelle (francese)
+  distinct(Title, .keep_all = TRUE) %>% #rimozione duplicati per titolo
+  select(Title, Artist, Year, Album, Lyric,  Popularity, Maincomposer)
+
+# Ricodifica variabile composer e fix NA canzoni strumentali ([Instrumental]=NA)
+beatles_full_df <- beatles_full_df %>% mutate(Maincomposer = recode(Maincomposer, 
+                                                                    'McCartney' = 'McCartney', 
+                                                                    'Lennon' = 'Lennon', 
+                                                                    'Harrison'='Harrison', 
+                                                                    'Lennon/McCartney'='Lennon/McCartney',
+                                                                    .default = 'Other')) %>%
+  mutate(Lyric = na_if(Lyric, "[Instrumental]")) %>%
+  mutate(biennio =ifelse(Year %in% 1963:1964, "63-64",
+                  ifelse(Year %in% 1965:1966, "65-66",
+                  ifelse(Year %in% 1967:1968, "67-68",
+                  ifelse(Year %in% 1969:1970, "69-70","NA")))))
+```
+
+
+Il brano **Michelle**, contenuto nell’album *Rubber Soul* del 1965, è stato cancellato dal dataset perché il testo in lingua francese generava problemi di omogeneità, rilevati soprattutto nell’analisi del **Topic Modelling** e **Clustering**. Sono stati inoltre eliminati i brani strumentali, in merito all'assenza del contenuto testuale.
+
+
+```{r Funzione Preprocessing: normalizzazione semplice}
+#creo una funzione di preprocessing (normalizzazione semplice)
+dataPreProcessing <- function(text){
+  text <- tolower(text)
+  text <- removeWords(text,c(stopwords::stopwords("en", source = "smart"), 
+                             stopwords::stopwords("en", source = "marimo"),
+                             custom.stopwords$word))
+  text <- removePunctuation(text)
+  text <- removeNumbers(text)
+  text <- stripWhitespace(text)
+}
+```
+
+
+```{r Creazione colonna con testo normalizzato e classifica popolarita}
+# creo colonne con testo normalizzato e stemming/lemming
+beatles_full_df <- beatles_full_df %>%
+  mutate(clean_lyrics = dataPreProcessing(Lyric)) %>%
+  mutate(stem_lyrics = stemDocument(clean_lyrics, language = "english")) %>%
+  mutate(lemm_lyrics = lemmatize_strings(clean_lyrics)) %>%
+  mutate(stem_lyrics = na_if(stem_lyrics, "NA"))
+
+# Creo classifica popolarità
+beatles_full_df <- beatles_full_df %>%
+  mutate(PopularityRank = dense_rank(desc(Popularity))) %>%
+  mutate(PopularityCluster = ifelse(PopularityRank %in% 1:10, "Top 10",
+                             ifelse(PopularityRank %in% 11:100, "Popolare", "Poco Popolare")))
+```
+
+
+### 2: Generale
+
+#### 2.1: Esplorazione del Dataset
+
+A seguito della fase di preprocessamento, esploriamo il dataset per ottenere le prime informazioni di carattere generale. Utilizziamo la funzione *glimpse()* per ottimizzare la visualizzazione della struttura del dataset.
+
+```{r Visualizzo la struttura del dataset}
+glimpse(beatles_full_df)
+```
+
+Il dataset così ottenuto è composto da 189 brani e 13 variabili. 
+
+Sono state mantenute nelle osservazioni anche le cover che i Beatles hanno registrato ed inciso nei loro album di brani popolari negli anni 50' e 60', come *Anna* (composta da A. Alexander) e *Chains* (di G. Goffin e C. King), poiché riteniamo che il contenuto testuale di una cover (appositamente selezionata e registrata in un disco dagli stessi Beatles) sia coerente ai temi trattati dai maggiori compositori dei Beatles e in linea agli avvenimenti del panorama politico-sociale degli anni 60'. Gli autori dei brani cover (contenuti nella variabile **Main Composer**), sono stati etichettati con *Other*, insieme ai brani scritti da Ringo Starr (non incluso nell'analisi, dato il numero ridotto di brani composti).
+
+Nella fase di pre-processing è stato effettuato anche il **cleaning** dei documenti, inserito nelle nuove variabili **clean_lyrics**, **stem_lyrics** e **lemm_lyrics** (questi ultimi differiscono dal primo per l'applicazione delle funzioni rispettivamente di *stemming*, usate nella *Sentiment Analysis* e nei metodi di categorizzazione quali *Clustering* e *Topic Modeling*, e *lemming*, usata nell'analisi della *diversità lessicale*).
+
+
+
+```{r Numero di brani per album}
+#Numero di canzoni per album
+beatles_full_df %>%
+  group_by(Album, Year) %>%
+  summarise(number_of_songs = n()) %>%
+  ggplot(aes(x=reorder(Album, Year), y=number_of_songs,fill = Album)) + 
+  geom_bar(stat = "identity")+
+  geom_label(aes(label = number_of_songs, fill = Album),colour = "white", fontface = "bold")+
+  ylim(NA,35)+
+  theme(plot.title = element_text(hjust = 0.5),
+        legend.title = element_blank(),
+        panel.grid.minor = element_blank(),
+        legend.position="none") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),panel.grid=element_blank(),panel.border = element_blank()) +
+  ggtitle("Numero di canzoni per Album") +
+  labs(x = NULL, y = "Numero di canzoni")
+```
+
+
+Il numero di brani per album è costante con un valore che si aggira in media tra i 13 e 14 brani, fatta eccezione per l'album *The Beatles* (conosciuto anche come *White Album*) composto da 30 brani.
+
+
+```{r Numero di brani per autore}
+# Numero di canzoni per autore
+beatles_full_df %>%
+  filter(Maincomposer != "NA") %>%
+  group_by(Maincomposer) %>%
+  summarise(number_of_songs = n()) %>%
+  ggplot(aes(x =reorder(Maincomposer, number_of_songs), y = number_of_songs, fill = Maincomposer)) +
+  geom_bar(stat = "identity")  +
+  geom_label(aes(label = number_of_songs, fill = Maincomposer),colour = "white", fontface = "bold")+
+  theme(plot.title = element_text(hjust = 0.5),
+        panel.grid.minor = element_blank(), 
+        legend.position="none") +
+  ggtitle("Numero di canzoni per Autore") +
+  labs(x = NULL, y = "Numero canzoni") + 
+  coord_flip()
+```
+
+
+La discografia dei Beatles è composta da brani scritti prevalentemente da John Lennon e Paul McCartney (63 brani per autore e 11 scritti insieme), e 18 testi scritti da George Harrison. 
+
+
+#### 2.2: Brani più popolari per anno di pubblicazione
+
+Considerando i dati della *Popularity* tratti da Spotify, costruiamo un grafico che metta in relazione quali siano i brani dei Beatles ad oggi più ascoltati in funzione all'anno di pubblicazione.
+
+```{r Chord Diagram: Relazione tra anni e popolarita dei brani}
+Album_chart <- beatles_full_df %>%
+  count(biennio, PopularityCluster)
+
+circos.clear() 
+grid.col = c("63-64" = "#56B4E9", "65-66" = "#E69F00", "67-68" = "yellowgreen", "69-70" = "violet","Top 10" = "grey", "Popolare" = "grey", "Poco Popolare" = "grey") 
+
+circos.par(gap.after = c(rep(5, length(unique(Album_chart[[1]])) - 1), 15,
+                         rep(5, length(unique(Album_chart[[2]])) - 1), 15))
+
+
+chordDiagram(Album_chart, grid.col = grid.col, transparency = .2)
+title("Relazione tra Anni e Popolarità dei Brani")
+```
+
+Ad oggi, sono rimasti molto popolari i brani prodotti dal 1965 fino alla fine della carriera musicale nel 1970. Poco ascoltati gli album dei primi due anni.
+
+### 3: Testi
+
+#### 3.1: Parole più frequenti e Wordcloud
+
+
+
+
+```{r WordCloud}
+words <- beatles_full_df %>%
+  unnest_tokens(word, clean_lyrics)
+
+# Costruisco il wordcloud
+wordcloud <- words %>%
+  count(word, sort = TRUE) %>%
+  top_n(100) %>%
+  ungroup() %>%
+  mutate(word = reorder(word, n))
+
+set.seed(42)
+ggplot(wordcloud,aes(label = word, size = n, color = factor(sample.int(20, nrow(wordcloud), replace = TRUE)))) +
+  geom_text_wordcloud_area() +
+  scale_size_area(max_size = 24) +
+  theme_minimal()+
+  ggtitle("Le parole più usate dai beatles") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+
+
+
+```{r Grafico top 10 most used words}
+# Costruisco il grafico delle 10 parole più usate
+words %>%
+  count(word, sort = TRUE) %>%
+  top_n(10) %>%
+  ungroup() %>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot(aes(x = word, y = n, fill = word, label = n))+
+  geom_bar(stat="identity", show.legend = FALSE) +
+  theme_minimal()+
+  theme(plot.title = element_text(hjust = 0.5),
+        panel.grid.minor = element_blank(), 
+        legend.position="none")+
+  labs(title = "Le 10 parole più usate dai Beatles", x = "Parole", y = "Conteggio parole") +
+  geom_label(aes(fill = word),colour = "white", fontface = "bold", show.legend = FALSE) +
+  coord_flip()
+```
+
+Negli anni '60 lo sgretolamento del sogno americano e dei suoi ideali, con il fallimento della guerra del Vietnam, ebbero come conseguenza la costituzione di una nuova controcultura che si oppose ai valori tradizionali. I nuovi valori di amore e spensieratezza pervasero nella nuova generazione influenzandone la cultura giovanile[^nota10]. 
+
+I Beatles, avanguardie della nuova frontiera giovanile, usano **love** come parola più frequente (ricorrente per 409 volte), costituendo un nuovo carattere identificativo nella scrittura dei testi musicali molto usata nella successiva *Pop Music*. 
+
+La parola **yeah** (ricorrente 191 volte) è la seconda parola più frequente. Seppur non molto significativa nel contenuto in se, risulta interessante nel suo significato culturale latente, in quanto costituisce una parola molto usata nella popular music degli anni '60, in particolare nello stile *Rock 'n Roll* a cui appartiene buona parte della discografia dei Beatles.
+
+Questa prima visualizzazione generale dei documenti suggerisce il tema della *giovinezza* e delle *prime relazioni*, ipotesi che sarà indagata nei modelli di categorizzazione del testo considerati.
+
+
+[^nota10]: A.Ashbolt, *From Haigth-Ashbury to soulful socialism: culture and politics in the movement*, in "Australasian Journal of American Studies", Vol.1, N.3, Luglio 1982, pp. 28-38
+
+
+#### 3.2: Sentiment Analysis
+
+##### 3.2.1: Lexicon: confronto tra diversi metodi
+
+
+La classificazione del sentiment è stata effettuata seguendo un approccio *lexicon-based*. La libreria *tidytext* offre 3 vocabolari specializzati di opinione (o *lexicon*) in grado di contare le parole contenute nei brani con valore positivo o negativo e, nel caso del metodo **nrc**, anche il valore emozionale.
+
+In una prima fase di analisi del sentimento abbiamo voluto confrontare il numero di parole riconosciute dai 3 lexicon, semplicemente contando le etichette contenute all'interno dei brani.
+ 
+Una annotazione sul conteggio per quanto riguarda il dizionario **afinn** (che offre un peso al sentimento positivo o negativo con valore compreso tra -5 e +5): in questo processo è stato semplificato contando tutti i valori minori di 0 come *negative* e tutti i valori maggiori di 0 come *positive*.
+ 
+ 
+```{r Polarita per Lexicon}
+words.stem <- beatles_full_df %>%
+  unnest_tokens(word, stem_lyrics)
+
+# Assegnazione etichette sentiment (bing, nrc, afinn)
+words.sentiment <-words.stem %>%
+  select(Title, Album, Year, Maincomposer, PopularityCluster, word) %>%
+  left_join(get_sentiments("bing"),by = "word")%>%
+  left_join(get_sentiments("nrc"), by = "word")%>%
+  left_join(get_sentiments("afinn"), by = "word")%>%
+  rename(bing = sentiment.x, nrc = sentiment.y, afinn = value)
+
+#  Conteggio etichette sentiment diversi metodi (bing, nrc, afinn)
+words.sentiment %>% 
+  filter(nrc == "positive" | nrc == "negative" | is.na(nrc)) %>% 
+  mutate(afinn = ifelse(afinn < 0, "negative", ifelse(afinn > 0, "positive", NA))) %>%
+  select(bing, nrc, afinn) %>%
+  mutate_if(is.character, as.factor) %>%
+  summary()
+```
+
+
+Confrontando le parole riconosciute dai diversi lexicon risulta evidente che la libreria *nrc* rilevi più parole rispetto alle altre. Considerata anche la possibilità di predisporre dati di valori emotivo sulle parole, abbiamo scelto di usare il metodo **nrc** per le analisi di opinione.
+
+##### 3.2.2: Polarità del sentiment
+
+```{r Sentiment Analysis: Polarita}
+# Creo il grafico della polarità del sentiment
+words.sentiment %>% 
+  select(word, Title, Year, nrc) %>%
+  filter(nrc == "positive" | nrc == "negative") %>%
+  group_by(nrc) %>%
+  summarise(word_count = n()) %>%
+  ungroup() %>%
+  mutate(nrc = reorder(nrc, word_count))%>%
+  ggplot(aes(x= nrc, y= word_count, fill = nrc, label = word_count)) +
+  geom_bar(stat="identity", show.legend = FALSE) +
+  theme_minimal()+
+  theme(plot.title = element_text(hjust = 0.5),
+        panel.grid.minor = element_blank(), 
+        legend.position="none")+
+  labs(title = "Sentiment generale Beatles", x = "Sentiment", y = "Conteggio parole") +
+  geom_label(aes(fill = nrc),colour = "white", fontface = "bold") +
+  scale_y_continuous(limits = c(0, 2000)) +
+  coord_flip()
+```
+
+
+I risultati evidenziano come il sentimento sia ampiamente più positivo (circa il 68% delle parole riconosciute dal lexicon).
+
+
+##### 3.2.3: Andamento polarità negli anni
+
+```{r Sentiment Analysis: Polarita negli Anni}
+words.sentiment %>%
+  select(Year, nrc) %>%
+  filter(nrc == "positive" | nrc == "negative") %>%
+  group_by(Year, nrc)%>%
+  summarise(nrc_count = n())%>%
+  ungroup() %>%
+  inner_join(words.sentiment %>%
+               filter(nrc == "positive" | nrc == "negative") %>% 
+               group_by(Year) %>%
+               tally()) %>% 
+  filter(nrc=="negative") %>%
+  mutate(polarity = n-nrc_count) %>%
+  mutate(polarity.rel = polarity/n) %>% 
+  ggplot(aes(x = Year, y = polarity.rel)) +
+  geom_area(fill="salmon", alpha=0.7)+
+  geom_line(color="salmon", size=2) +
+  geom_point(size=3, color="salmon") +
+  ggtitle("Sentiment positivo negli anni")+
+  theme_minimal()+
+  theme(plot.title = element_text(hjust = 0.5),
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        legend.position="none")+
+  xlab("Anno") + ylab("% positivi")+
+  ylim(0,1)
+```
+
+
+L'andamento del sentiment negli anni è sempre positivo, con alcune variazioni nel '65 e '68.
+
+
+#### 3.3: Text Network Analysis
+
+
+Seguendo i principi della linguistica computazionale contemporanea, secondo i quali l'informazione risiede nella relazione tra le parole, abbiamo deciso di costruire una rete in grado cogliere le relazioni che intercorrono tra le parole contenute all'interno della discografia dei Beatles.
+
+Per la costruzione del grafo, si è scelto di realizzare una matrice di co-occorrenze basate sulla correlazione e visualizzare i nodi maggiormente associati e i loro legami.
+
+Nello specifico, per semplificare la visualizzazione della rete si è scelto di rappresentare le parole che occorrono almeno 15 volte all'interno degli album e che abbiano almeno una moderata correlazione tra loro (ϕ > 0.6).
+
+
+##### 3.3.1: Full Network
+
+```{r Costruisco la rete delle parole filtrata}
+g <- words.stem %>%
+  select(Album, word) %>%
+  group_by(word) %>%
+  filter(n() >= 15) %>%
+  pairwise_cor(word, Album, sort = TRUE) %>%
+  filter(correlation > .6) %>%
+  graph_from_data_frame(directed = FALSE) %>%
+  simplify(remove.multiple = T, remove.loops = T)
+
+V(g)$color = "white"
+l <- layout_nicely(g, dim = 2)
+plot(g, main="Full network", vertex.label.dist=1, vertex.label.color="black", repel=T, vertex.size = 3, vertex.label.dist=1, edge.lty="dotted", layout = l)
+```
+
+
+
+
+##### 3.3.2: Cluster
+
+
+Al fine di individuare i topic più rilevanti all'interno della discografia dei Beatles, si è deciso di clusterizzare la rete utilizzando il metodo **Louvain**[^nota11]. 
+
+[^nota11]: sviluppato da V. Blondel, J.-L. Guillaume, R. Lambiotte, E. Lefebvre, 2008 e reperibile al seguente [link](https://sites.google.com/site/findcommunities/)
+
+```{r Cluster }
+lc <- cluster_louvain(g)
+
+# Visualizzo la rete clusterizzata
+plot(g, edge.arrow.size = .2, vertex.size = 4, vertex.label.dist=1, vertex.label.color="black", repel=T, edge.lty="dotted", layout = l, vertex.color=rainbow(9, alpha=0.6)[lc$membership], main = "Full Network (Cluster)")
+
+legend(
+  "bottomright",
+  legend = c("Ribelle", "Avventuroso", "Psichedelico", "Sognatore", "Introspettivo", "Romantico", "Sentimentale", "Hippy", "Giovane"), 
+  fill = rainbow(9, alpha=0.6),
+  bg = "transparent",                              
+)
+```
+
+
+Nei 9 cluster individuati, una categoria molto marcata è il tema della *ribellione*, testimonianza delle nuove tendenze giovanili che costituiranno i movimenti della controcultura degli anni '60. Importante anche la categoria *psichedelico*, tema ricorrente da *Revolver* fino alla fine della loro carriera e che ha contribuito a definire nuove basi per il genere *Rock Psichedelico*.
+
+
+
+#### 3.4: Topic Modeling: Latent Dirichlet Allocation
+
+
+Per rendere più robusta l'analisi abbiamo deciso di utilizzare un'altra strategia di topic modeling per cogliere somiglianze e differenze con la prima (*Louvain* sulla network). LDA è un modello statistico di analisi del linguaggio naturale che permette di comprendere il significato semantico del testo analizzando la somiglianza tra la distribuzione dei termini del documento con quella di un argomento specifico o di un'entità[^nota12].
+
+Per determinare il numero di topic ideale, abbiamo scelto di utilizzare la libreria *ldatuning* che raccoglie 4 strategie di valutazione differenti: **Griffiths2004**, **CaoJuan2009**, **Arun2010**,**Deveaud2014**[^nota13].
+
+
+
+[^nota12]: Per ulteriori dettagli sul metodo, consultare il seguente [link](http://www.andreaminini.com/semantica/latent-dirichlet-allocation-lda)
+
+[^nota13]: Per ulteriori dettagli sul metodo, consultare il seguente [link](https://rpubs.com/MNidhi/NumberoftopicsLDA)
+
+```{r Latent Dirichlet Allocation}
+library(ldatuning)
+library(topicmodels)
+
+# Topic Modeling: Costruzione dei topic
+album_words <- words.stem %>%
+  count(Album, word, sort = TRUE) 
+
+album_dtm <- album_words %>%
+  cast_dtm(Album, word, n)
+
+# individuo k migliore
+tunes <- FindTopicsNumber(
+  dtm = album_dtm,
+  topics = c(2:15),
+  metrics = c("Griffiths2004", "CaoJuan2009", "Arun2010","Deveaud2014"),
+  method = "Gibbs",
+  control = list(seed = 12345),
+  mc.cores = 4L,
+  verbose = TRUE
+)
+
+#visualizzo performance con diversi k
+FindTopicsNumber_plot(tunes)
+
+
+album_lda <- LDA(album_dtm, k = 10, control = list(seed = 1234))
+#album_lda
+
+album_topics <- tidy(album_lda, matrix = "beta")
+#album_topics
+
+top_terms <- album_topics %>%
+  group_by(topic) %>%
+  top_n(10, beta) %>%
+  ungroup() %>%
+  arrange(topic, -beta)
+
+#top_terms
+
+top_terms %>%
+  mutate(term = reorder_within(term, beta, topic)) %>%
+  ggplot(aes(term, beta, fill = factor(topic))) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~topic, scales = "free") +
+  coord_flip() +
+  scale_x_reordered()
+```
+
+
+
+I topic prodotti ricordano per numero e aree semantiche gli argomenti ricavati nella clusterizzazione sulla rete di parole del paragrafo 3.3.3; mentre l'algoritmo utilizzato per la creazione e clusterizzazione della rete penalizza il termine **love** (in quanto associato più a se stesso che ad altre parole), in questo caso viene sovrarappresentato e compare in modo pervasivo in tutti i topic.
+
+
+
+### 4: Autori
+
+#### 4.1: Parole più frequenti e confronto tra i compositori
+
+In questa sezione, l'analisi pone il focus sulla ricerca di elementi caratteristici tra i diversi compositori.
+
+Le prime analisi sono incentrate nel valutare l'estensione del vocabolario dei diversi autori attraverso un approccio basato sulla frequenza di utilizzo. Si introduce poi l'analisi delle corrispondenze lessicali con successiva clusterizzazione finalizzata ad individuare i temi più ricorrenti per ogni autore. Infine l'analisi del sentimento per emozioni per individuare la diversità dello spettro emotivo comunicato.
+
+
+```{r WordCloud affiancato }
+words.harrison <- words %>%
+  filter(Maincomposer == "Harrison") %>%
+  count(word, sort = TRUE) %>% 
+  ungroup() %>%
+  mutate(word = reorder(word, n))
+
+wordcloud.harrison <- words.harrison %>%
+  top_n(50) %>% 
+  ungroup() %>%
+  mutate(word = reorder(word, n)) %>%
+  mutate(composer="Harrison")
+
+words.lennon <- words %>%
+  filter(Maincomposer == "Lennon") %>%
+  count(word, sort = TRUE) %>% 
+  ungroup() %>%
+  mutate(word = reorder(word, n))
+
+wordcloud.lennon <- words.lennon %>% 
+  top_n(50) %>% 
+  ungroup() %>%
+  mutate(word = reorder(word, n)) %>%
+  mutate(composer="Lennon")
+
+words.mccartney <- words %>%
+  filter(Maincomposer == "McCartney") %>%
+  count(word, sort = TRUE) %>% 
+  ungroup() %>%
+  mutate(word = reorder(word, n))
+
+wordcloud.mccartney <- words.mccartney %>%
+  top_n(50) %>% 
+  ungroup() %>%
+  mutate(word = reorder(word, n)) %>%
+  mutate(composer="McCartney")
+
+wordcloud.sbs <- bind_rows(wordcloud.lennon, wordcloud.mccartney, wordcloud.harrison) %>% arrange(desc(n))
+
+set.seed(42)
+ggplot(wordcloud.sbs, aes(label = word, size = n, color = factor(sample.int(20, nrow(wordcloud.sbs), replace = TRUE)))) +
+  geom_text_wordcloud_area() +
+  scale_size_area(max_size = 20) +
+  theme_minimal() +
+  facet_wrap(~composer)+
+  theme(strip.text = element_text(size=11), plot.title = element_text(hjust = 0.5))+
+  ggtitle("Wordcloud per autore")
+```
+
+
+La nuvola di parole a confronto tra i maggiori compositori mostra come le parole più frequenti siano simili tra gli autori.
+
+
+
+```{r PyramidPlot: parole in comune testi Lennon e McCarthney}
+# Pyramid plot delle parole in comune tra i testi di Lennon e McCarthney
+words.common <- inner_join(words.lennon, words.mccartney, by='word', suffix = c(".lennon", ".mccartney"))
+
+pyramid.plot(words.common$n.lennon[1:10], words.common$n.mccartney[1:10],
+             labels = words.common$word[1:10], 
+             main = "Le parole in comune",
+             gap = 18,
+             laxlab = NULL,
+             raxlab = NULL, 
+             unit = NULL,
+             top.labels = c("Lennon",
+                            "Parole",
+                            "McCartney"),
+             show.values=T,
+             ndig=0
+)
+```
+
+
+Il Pyramidplot mette a confronto i termini in comune più usati dai maggiori autori (Lennon e McCartney). Dallo sbilanciamento di alcune parole (come *cry* molto usata da Lennon e *time* da McCartney), si può ipotizzare che Lennon utilizzi un lessico un po' più negativo rispetto a McCartney. L'ipotesi sarà approfondita più avanti nella Sentiment Analysis per emozioni.
+
+
+##### 4.1.1: Diversità lessicale tra gli autori
+
+Per valutare la diversità lessicale tra gli autori abbiamo usato il testo lemmatizzato basandoci sul numero di parole uniche per brano. La scelta del **lemming** rapprtesenta il giusto *trade off* tra l'uso dei termini non normalizzati e la riduzione delle forme alla radice (**stemming**).
+
+
+```{r Pirateplot: Lexical Diversity}
+# Grafico lexical diversity
+words.lemm <- beatles_full_df %>%
+  unnest_tokens(word, lemm_lyrics)
+
+lexical.div <- words.lemm %>%
+  group_by(Maincomposer, Title) %>%
+  mutate(word.count = n_distinct(word))%>%
+  distinct() %>%
+  ungroup()
+
+par(mar = c(4, 4, 3, 3)) # fix margini per pirateplot
+pirateplot(formula =  word.count ~ Maincomposer,
+           data = lexical.div,
+           xlab = "Autore", 
+           ylab = "Numero parole uniche per canzone",
+           main = "Diversità lessicale per autore",
+           pal = "xmen",
+           point.o = .2,
+           avg.line.o = 1,
+           theme = 0,
+           point.pch = 16,
+           point.cex = 1.5,
+           jitter.val = .1,
+           cex.lab = 0.9, 
+           cex.names = 0.9)
+```
+
+
+
+I punti all'interno del grafico rappresentano i termini unici ripetuti in un brano.
+
+Il *pirateplot* mostra il numero di parole uniche usate tra i diversi compositori, identificcando in **Lennon** il compositore che in media ha una più vasta diversità lessicale all'interno di ogni brano. Harrison, invece, risulta l'autore con il vocabolario più ristretto.
+
+
+#### 4.2: Analisi delle Corrispondenze Lessicali (Autori)
+
+
+In questo paragrafo si effettua l'analisi delle corrispondenze lessicali (approccio elaborato da J.P. Benzécri), al fine di identificare con tecniche di clustering i differenti argomenti trattati e comprendere il posizionamento dei differenti autori in relazione alle tematiche individuate.
+
+Il metodo di categorizzazione utilizzato è il **fuzzy clustering**. La scelta è dovuta all’assunzione che questo tipo di analisi avrebbe prodotto elementi associabili a più cluster, sulla base dell'idea perseguita nell'LDA (paragrafo 3.4).
+
+
+```{r LCA autori}
+composer.LCA <- beatles_full_df%>%
+  select(Maincomposer, stem_lyrics) %>%
+  drop_na() %>%
+  as.data.frame()
+
+res.TD<-TextData(composer.LCA,var.text="stem_lyrics", idiom="en", var.agg="Maincomposer", Fmin=20, Dmin=10)
+
+# costruisco la matrice documenti aggregati per parole
+TableLex<-as.matrix(res.TD$DocTerm)
+
+#     calcolo del chi quadrato
+res.chi2<-chisq.test(TableLex)
+print(res.chi2)
+
+#   Analisi della corrispondenza
+res.LexCA<-LexCA(res.TD, graph=FALSE)
+
+#    Grafico degli autovalori
+plot(res.LexCA,eigen=TRUE,selDoc=NULL,selWord=NULL,graph.type = "ggplot")
+
+#     Rappresentazione simultanea di righe e colonne su una stessa grafica; scale fisse
+plot(res.LexCA,xlim=c(-1,1),ylim=c(-1,1),col.doc="blue",col.word="red",cex=1,
+     title="Superposed document and word representation",graph.type = "ggplot", autoLab = "yes")
+```
+
+```{r Fuzzy cluster autori}
+# FUZZY CLUSTERING
+# Creo dataframe con coordinate delle parole sulla proiezione ortogonale dell'LCA
+parole <- res.LexCA$col$coord[,1:2]
+
+# Stabilisco il numero ottimale di cluster con metodo elbow
+fviz_nbclust(parole, kmeans, method = "wss") +
+  geom_vline(xintercept = 3, linetype = 2)+
+  labs(subtitle = "Elbow method")
+
+# Faccio il fuzzy clustering con k=4 e distanza euclidea
+set.seed(13)
+cm <- cmeans(parole, dist = "euclidean", 3)
+
+# Stampo una preview della membership degli individui ai cluster
+head(cm$membership,20)
+
+# Visualizzo i cluster
+cluster.plot <- fviz_cluster(list(data = parole, cluster=cm$cluster), 
+                    ellipse.type = "norm",
+                    ellipse.level = 0.68,
+                    palette = "jco",
+                    ggtheme = theme_minimal(),
+                    geom = c("point", "text"),
+                    repel = T)
+fviz_add(cluster.plot, res.LexCA$row$coord[,1:2], color ="black", geom=c("text", "point"), addlabel = TRUE, repel=TRUE)
+```
+
+
+Attraverso la LexCA è possibile distinguere la diversità degli argomenti trattati dai diversi compositori. McCartney e Harrison trattano temi più *romantici* e allegri (**cluster1**) rispetto a Lennon che si mostra più *riflessivo* e *ribelle* (**cluster2**). I brani scritti a 4 mani (Lennon/McCartney), invece, affrontano temi più *giovanili* e *spensierati* (**cluster3**), simili a quelli trattati dai compositori minori (Other).
+
+
+
+#### 4.3: Radar Emozioni per Autori
+
+
+
+```{r Sentiment Analysis: Radar Chart emozioni per Autore}
+sentiment.composer <- words.sentiment %>% 
+  filter(Maincomposer %in% c("Lennon","McCartney","Harrison")) %>% 
+  select(word, Title, Year, Maincomposer, nrc) %>% 
+  filter(!Maincomposer %in% NA) %>% 
+  filter(!nrc %in% c("positive", "negative", NA)) %>%
+  group_by(Maincomposer, nrc) %>%
+  summarise(word_count = n()) %>%
+  ungroup() %>%
+  mutate(nrc = reorder(nrc, word_count))
+
+sentiment.composer.total <- words.sentiment %>%
+  filter(!Maincomposer %in% NA) %>% 
+  filter(!nrc %in% c("positive", "negative", NA)) %>%
+  count(Maincomposer) %>%
+  select(Maincomposer, composer_total = n)
+
+sentiment.composer %>%
+  inner_join(sentiment.composer.total, by = "Maincomposer") %>%
+  mutate(percent = word_count / composer_total * 100 ) %>%
+  select(-word_count, -composer_total) %>%
+  spread(Maincomposer, percent) %>%
+  chartJSRadar(showToolTipLabel = TRUE,
+               main = "NRC Composer Radar")
+```
+
+
+
+L'analisi del sentiment per emozioni ha evidenziato alcune sfumature interessanti nella diversità tra gli autori dei testi. Come già evidenziato nel paragrafo 3.2.2, i compositori condividono un sentiment emozionale proiettato prevalentemente nelle sfere più positive, mostrando una ricorrenza maggiore del sentiment *gioioso* nei testi di McCartney e di *attesa* nei testi di Harrison. Lennon, invece, allarga un po' lo spettro emozionale inserendo nei suoi testi anche note emotive legate alla *rabbia* e alla *paura*, confermando l'intuizione del paragrafo 4.1.
+
+
+
+### 5: Popolarità
+
+Sulla base dei dati della popolarità di Spotify, abbiamo scelto di indagare le caratteristiche dei brani più ascoltati ai giorni nostri. Come nei precedenti paragrafi, abbiamo scelto di iniziare da un'analisi di frequenza delle parole, per poi concentrarci sul sentiment e sull'individuazione degli argomenti maggiormente trattati.
+
+
+#### 5.1: Parole più frequenti
+
+```{r Top Words by Popularity Cluster}
+words %>%
+  count(PopularityCluster, word, sort = TRUE) %>%
+  group_by(PopularityCluster) %>%
+  top_n(10) %>%
+  ungroup() %>%
+  mutate(PopularityCluster = as.factor(PopularityCluster), word = reorder_within(word, n, PopularityCluster)) %>%
+  ggplot(aes(x =  reorder_within(word, n, PopularityCluster), y = n, fill = word, label = n))+
+  geom_bar(stat="identity", show.legend = FALSE) +
+  theme_minimal()+
+  theme(plot.title = element_text(hjust = 0.5),
+        panel.grid.minor = element_blank(), 
+        legend.position="none")+
+  labs(title = "Le 10 parole più usate dai Beatles", x = "Parole", y = "Conteggio parole") +
+  geom_label(aes(fill = word),colour = "white", fontface = "bold", show.legend = FALSE) +
+  scale_x_reordered() +
+  facet_wrap(~PopularityCluster, ncol = 3, scales = "free") +
+  coord_flip()
+```
+
+
+Confrontando il grafico con il *Wordcloud* del paragrafo 3.1 ricorrono le stesse parole più frequenti. Va evidenziato, però, che tra i 10 brani più ascoltati di Spotify, **love** compare solo in secondo piano; questo presuppone che nella Top 10 sia trattato in modo più sfumato il tema romantico o sentimentale.
+
+
+#### 5.2: Sentiment per Popolarità
+
+
+```{r Sentiment per Popolarita frequenza relativa}
+words.sentiment %>% 
+  select(PopularityCluster, nrc) %>% 
+  filter(nrc == "positive" | nrc == "negative") %>%
+  group_by(PopularityCluster, nrc)%>%
+  summarise(nrc_count = n())%>%
+  ungroup () %>%
+  inner_join(words.sentiment %>%
+               filter(nrc == "positive" | nrc == "negative") %>%
+               group_by(PopularityCluster) %>%
+               tally()) %>% 
+  mutate(rel.freq = nrc_count / n) %>% 
+  ggplot(aes(fill=nrc, y=PopularityCluster, x=rel.freq, label = round(rel.freq,2))) +
+  geom_bar(position="fill", stat="identity") +
+  geom_label(aes(fill = nrc),colour = "white", fontface = "bold", position = position_stack(vjust = 0.5))+
+  labs(x = "Frequenza relativa", y="")+
+  ggtitle("Sentiment per popolarità")+
+  theme(plot.title = element_text(hjust = 0.5),
+        panel.grid.minor = element_blank(),
+        legend.title = element_blank())
+```
+
+
+Il rapporto di polarità del sentiment mostra come i brani dei Beatles siano in prevalenza positivi, mantenendo lo stesso andamento anche nell'aggregazione dei brani per popolarità.
+
+##### 5.2.1: Radar Popolarità
+
+
+```{r Radar Popolarita}
+sentiment.popularity <-words.sentiment %>% 
+  select(word, Title, Year, PopularityCluster, nrc) %>% 
+  filter(!nrc %in% c("positive", "negative", NA)) %>%
+  group_by(PopularityCluster, nrc) %>%
+  summarise(word_count = n()) %>%
+  ungroup() %>%
+  mutate(nrc = reorder(nrc, word_count))
+
+sentiment.popularity.total <- words.sentiment %>%
+  filter(!nrc %in% c("positive", "negative", NA)) %>%
+  count(PopularityCluster) %>%
+  select(PopularityCluster, pop_total = n)
+
+sentiment.popularity %>%
+  inner_join(sentiment.popularity.total, by = "PopularityCluster") %>%
+  mutate(percent = word_count / pop_total * 100 ) %>%
+  select(-word_count, -pop_total) %>%
+  spread(PopularityCluster, percent) %>%
+  chartJSRadar(showToolTipLabel = TRUE,
+               main = "NRC Popularity Radar")
+```
+
+
+
+Il sentiment emozionale mette in evidenza alcune peculiarità dei brani tra le diverse categorie di ascolto. I **10 brani** maggiormente ascoltati sono quasi totalmente proiettati verso le emozioni più positive con picco nel sentimento di *fiducia* e *gioia* e una buona prevalenza anche nell'*attesa*. I brani **poco popolari** riducono lo spettro delle emozioni, portando il picco verso *gioia* e *attesa* a differenza dei brani **popolari** che comunicano alcune emozioni di *rabbia* e *paura* ricordando lo spettro emozionale dei testi di John Lennon.
+
+
+
+#### 5.3: Analisi delle corrispondenze Lessicali (Popolarità)
+
+
+Come già fatto nel paragrafo 4.2 si è scelto di replicare l'LCA mettendo in relazione le parole con la popolarità dei brani.
+
+
+```{r LCA Popolarita}
+popularity.LCA <- beatles_full_df%>%
+  select(PopularityCluster, stem_lyrics) %>%
+  drop_na() %>%
+  as.data.frame()
+
+res.TD<-TextData(popularity.LCA,var.text="stem_lyrics", idiom="en", var.agg="PopularityCluster", Fmin=20, Dmin=10)
+
+# costruisco la matrice documenti aggregati per parole
+TableLex<-as.matrix(res.TD$DocTerm)
+
+#     calcolo del chi quadrato
+res.chi2<-chisq.test(TableLex)
+print(res.chi2)
+
+#   Analisi della corrispondenza
+res.LexCA<-LexCA(res.TD, graph=FALSE)
+
+#    Grafico degli autovalori
+plot(res.LexCA,eigen=TRUE,selDoc=NULL,selWord=NULL,graph.type = "ggplot")
+
+#     Rappresentazione simultanea di righe e colonne su una stessa grafica; scale fisse
+plot(res.LexCA,xlim=c(-2,2),ylim=c(-2,2),col.doc="blue",col.word="red",cex=1,
+     title="Superposed document and word representation",graph.type = "ggplot", autoLab = "yes")
+```
+
+
+```{r Fuzzy cluster popolarita}
+# Creo dataframe con coordinate delle parole sulla proiezione ortogonale dell'LCA
+parole <- res.LexCA$col$coord[,1:2]
+
+# Stabilisco il numero ottimale di cluster con metodo elbow
+fviz_nbclust(parole, kmeans, method = "wss") +
+  geom_vline(xintercept = 3, linetype = 2)+
+  labs(subtitle = "Elbow method")
+
+# Faccio il fuzzy clustering con k=4 e distanza euclidea
+set.seed(13)
+cm <- cmeans(parole, dist = "euclidean", 3)
+
+# Stampo una preview della membership degli individui ai cluster
+head(cm$membership,20)
+
+# Visualizzo i cluster
+cluster.plot <- fviz_cluster(list(data = parole, cluster=cm$cluster), 
+                             ellipse.type = "norm",
+                             ellipse.level = 0.68,
+                             palette = "jco",
+                             ggtheme = theme_minimal(),
+                             geom = c("point", "text"),
+                             repel = T)
+fviz_add(cluster.plot, res.LexCA$row$coord[,1:2], color ="black", geom=c("text", "point"), addlabel = TRUE, repel=TRUE)
+```
+
+
+Confermando la riflessione del paragrafo 5.1, nei brani più ascoltati (**Top 10**) prevale il tema della *spensieratezza* (cluster 2) e non quello romantico, caratteristica peculiare dei brani **poco popolari** (cluster 3). Si posizionano tra il *ribelle* e *l'introspettivo* i brani **popolari**, confermando la prevalenza dei testi di John Lennon all'interno di questa categoria.
+
+I risultati di questa analisi sembrano in controtendenza rispetto a quanto spesso emerge dalla critica dove i Beatles vengono solitamente associati al tema dell'amore.
+
+
+
+
+#### 5.4: Andamento brano più popolare: *Here Comes The Sun*
+
+
+Come è noto, le storie a lieto fine sono generalmente quelle più apprezzate dal grande pubblico. Avendo a disposizione i dati sulla popolarità di Spotify, ci siamo domandati come potrebbe evolversi l'andamento del sentiment nella canzone più popolare dei Beatles e se c'è un lieto fine.
+
+Per scandire il ritmo narrativo, abbiamo deciso di utilizzare un metodo di tokenizzazione basato sui capoversi, riprendendo la musicalità per cui questi testi sono stati pensati.
+
+
+```{r Sentiment Brano più popolare: Here comes the sun}
+library(syuzhet)
+best.song <- beatles_full_df %>% filter(PopularityRank==1)
+best.song.tokens <- get_tokens(best.song$Lyric, pattern = "\n")
+best.song.vector <- get_sentiment(best.song.tokens, method="syuzhet")
+
+best.song$Title[1]
+
+simple_plot(best.song.vector,
+            title = "Andamento Sentiment di Here Comes The Sun"
+)
+```
+
+
+
+In relazione ai dati della Popularity tratti da Spotify, il brano ad oggi più ascoltato è **Here Comes The Sun**, contenuta nell'album *Abbey Road* del '69 e composta da George Harrison. L'andamento del sentiment è altalenante, inizialmente più negativo con epilogo positivo che conferma la riflessione precedentemente riportata.
+
+
+
+
+### Conclusioni
+
+
+Questo percorso di Text Analytics ci ha portato a esplorare i Beatles nelle loro varie sfaccettature, da un'analisi più approfondita degli autori a una centrata sulla popolarità dei brani. 
+
+Sul piano generale
+
+L'analisi condotta sugli autori ha messo in luce delle anime profondamente diverse: McCartney e Harrison condividono argomenti più romantici e gioiosi, rispetto a Lennon più introspettivo. I brani composti a quattro mani (Lennon/McCartney) comunicano argomenti più spensierati e giovanili. 
+
+L'esplorazione dei testi in relazione alla popolarità dei brani ha mostrato come nei brani più popolari prevalgano argomenti spensierati e giovanili. Nella categoria dei brani *popolari* è interessante notare come sia prevalente l'influenza della poetica di Lennon. Focalizzando l'attenzione all'interno della categoria *Top10* è possibile evidenziare una distanza tra ciò che la critica associa comunemente ai Beatles, ovvero il tema dell'amore, e i topic emersi sulla base dei brani più ascoltati dal grande pubblico. In base ai risultati emersi, le persone sembrano apprezzare maggiormente i Beatles più spensierati.
+
+Analizzando il fenomeno *The Beatles* all'interno della produzione testuale si evince come la band ripercorra quei temi e quegli stati d'animo della cultura giovanile degli anni '60. Una band, dunque, per  giovani ribelli, spensierati, che rifiutano quei valori e modelli culturali del paradigma dominante e che allo stesso tempo riflettono una nuova *Weltanschauung*[^nota14] pacifista e progressista, che sarà in seguito assorbita dalle espressioni delle controculture.
+
+
+
+[^nota14]: termine coniato da K. Jaspers che lo definisce come «qualcosa di totale e universale a un tempo. [...] le visioni del mondo sono idee, manifestazioni supreme ed espressioni totali dell’uomo», in tal senso esse costituiscono «le posizioni ultime che l’anima occupa, [...] le forze che la muovono». K.Jaspers, *Psicologia delle visioni del mondo*, trad. it. di V. Loriga, Roma, Astrolabio, 1950, p. 9.11.
+
+
+
+
+
+### 6: Appendice
+
+
+In appendice riportiamo varie analisi effettuate che sono state escluse dall'elaborato per incompatibilità legate agli obiettivi o per mancanza di risultati soddisfacenti e scarsa leggibilità. 
+
+
+#### 6.1: Tabella TF-IDF
+
+
+```{r Tabella TFIDF}
+album_words <- words %>%
+  count(Album, word, sort = TRUE)
+
+total_words <- album_words %>%
+  group_by(Album) %>%
+  summarize(total = sum(n))
+
+album_words <- left_join(album_words, total_words)
+
+album_tf_idf <- album_words %>%
+  bind_tf_idf(word, Album, n)
+
+album_tf_idf <- album_tf_idf %>%
+  select(-total) %>%
+  arrange(desc(tf_idf))
+
+album_tf_idf %>%
+  arrange(desc(tf_idf)) %>%
+  mutate(word = factor(word, levels = rev(unique(word)))) %>%
+  group_by(Album) %>%
+  top_n(5) %>%
+  ungroup() %>%
+  ggplot(aes(word, tf_idf, fill = Album)) +
+  geom_col(show.legend = FALSE) +
+  labs(x = NULL, y = "tf-idf") +
+  facet_wrap(~Album, ncol = 2, scales = "free") +
+  coord_flip()
+```
+
+
+#### 6.2: Latent Semantic Analysis
+
+```{r LSA}
+library(quanteda)
+library(quanteda.textmodels)
+
+composer.LSA <- beatles_full_df %>% 
+  select(Maincomposer, stem_lyrics) %>% 
+  drop_na() %>%
+  as.data.frame() %>% 
+  unnest_tokens(word, stem_lyrics) %>% 
+  filter(word!= "love") %>% 
+  count(Maincomposer, word, sort = TRUE) %>% 
+  cast_dfm(document = Maincomposer, term = word, value = n) %>%
+  dfm_trim(min_termfreq = 10, min_docfreq = 5)
+composer.LSA
+
+mylsa<-textmodel_lsa(composer.LSA, nd=2)
+f<-mylsa$features
+d<-mylsa$docs
+
+plot(f,pch = 21, bg = "black", xlab="dim1", ylab="dim2", repel=T, xlim=c(-0.5,0.5))
+text(f, rownames(f),cex = 0.6,pos = 1,col = "red")
+
+d<-mylsa$docs
+
+plot(d,
+     pch = 21,
+     bg = "black",
+     xlab="dim1",
+     ylab="dim2")
+text(d,rownames(d),cex = 0.8,pos = 1,col =
+       "red")
+
+library(svd)
+svd1<-svd(composer.LSA)
+plot((svd1$d^2)/sum(svd1$d^2), type="l", xlab="k", ylab="varianza spiegata")
+```
+
+
+#### 6.3: Metodo Reinert
+
+Tra le tecniche di *topic extraction* utilizzati, un tentativo è stato applicare il **metodo Reinert** (libreria *rainette*) che individua dei gruppi di parole il più possibile coerenti al loro interno, basandosi sui segmenti di testo che estrae dal corpus totale. Sono stati individuati 6 cluster, rappresentati nel dendogramma, ma non hanno prodotto buoni risultati.
+
+```{r}
+library(rainette)
+library(quanteda)
+
+dtm <- dfm(beatles_full_df$lemm_lyrics)
+## riduco la matrice dtm, utilizzanado solo termini con frequenza >=3
+dtm <- dfm_trim(dtm, min_termfreq = 3)
+## classifico utilizzando diverse ampiezze di uc
+res <- rainette(dtm, k = 6, min_uc_size = 5, min_split_members = 20)
+rainette_plot(res, dtm, k = 6, type = "bar", n_terms = 10, free_scales = FALSE,
+              measure = "chi2", show_negative = "TRUE", text_size = 14)
+##esploro e visualizzo i risultati
+#rainette_explor(res, dtm)
+```
+
+
+
+#### 6.4: Text Network Analysis: Bigrammi e Trigrammi
+
+In una prima fase si è scelto di usare i bigrammi e trigrammi per analizzare le relazioni tra le parole. In seguito si è ritenuto più opportuno usare la matrice di co-occorrenze basate sulla correlazione in merito ai risultati più significativi prodotti.
+
+
+```{r}
+# Bigrammi SNA
+beatles_bigrams <- beatles_full_df %>%
+  unnest_tokens(bigram, clean_lyrics, token = "ngrams", n = 2) %>%
+  count(bigram, sort = TRUE) %>%
+  filter(n > 5) %>%
+  separate(bigram, c("word1", "word2"), sep = " ") %>%
+  drop_na()
+
+# filter for only relatively common combinations
+g.bigrams <- beatles_bigrams %>%
+  graph_from_data_frame(directed = FALSE) %>%
+  simplify(remove.multiple = T, remove.loops = T) 
+
+V(g.bigrams)$color = "white"
+l.bigrams <- layout_nicely(g.bigrams, dim = 2)
+
+plot(g.bigrams, main="Full network", vertex.label.dist=1, vertex.label.color="black", repel=T, vertex.size = 3, vertex.label.dist=1, edge.lty="dotted", layout = l.bigrams)
+```
+
+
+
+```{r}
+# Trigrammi SNA
+beatles_trigrams <- beatles_full_df %>%
+  unnest_tokens(trigram, clean_lyrics, token = "ngrams", n = 3) %>%
+  count(trigram, sort = TRUE) %>%
+  filter(n > 5) %>%
+  separate(trigram, c("word1", "word2", "word3"), sep = " ") %>%
+  drop_na()
+
+# filter for only relatively common combinations
+g.trigrams<- beatles_trigrams %>%
+  graph_from_data_frame(directed = FALSE) %>%
+  simplify(remove.multiple = T, remove.loops = T) 
+
+V(g.trigrams)$color = "white"
+l.trigrams <- layout_nicely(g.bigrams, dim = 2)
+
+plot(g.trigrams, main="Full network", vertex.label.dist=1, vertex.label.color="black", repel=T, vertex.size = 3, vertex.label.dist=1, edge.lty="dotted", layout = l.trigrams)
+```
+
+
+
+
+
+
+### Bibliografia
+
+
+
+* Arun R., Suresh V., Veni Madhavan C. E., Narasimha Murthy M. N., *On Finding the Natural Number of Topics with Latent Dirichlet Allocation: Some Observations*, part of the Lecture Notes in Computer Science book series (LNCS, volume 6118)
+
+* Ashbolt A., *From Haigth-Ashbury to soulful socialism: culture and politics in the movement*, in “Australasian Journal of American Studies”, Vol.1, N.3, Luglio 1982
+
+* Ballanti F., *La rivoluzione culturale: i Beatles hanno svegliato il mondo*, in “La Repubblica”, 26 Settembre 2012
+
+* Featherstone M., *Cultura del consumo e postmodernismo*, Edizioni Seam, 1994
+
+* Griffiths T.L., Steyvers M., *Finding scientific topics*, PNAS,6 Aprile 2004, 101 (suppl 1) 
+
+* Hobsbawm Eric J., *Il secolo breve: 1914/1991, Bur*, prima ed. giugno 2004
+
+* Jaspers K., *Psicologia delle visioni del mondo*, trad. it. di V. Loriga, Roma, Astrolabio, 1950
+
+
+
+
+
